@@ -1,0 +1,20 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  script:
+    - pip install -r requirements.txt
+    - pytest
+
+build:
+  stage: build
+  script:
+    - docker build -t bike_rental .
+
+deploy:
+  stage: deploy
+  script:
+    - docker-compose up -d
