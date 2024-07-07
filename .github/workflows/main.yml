@@ -18,6 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - name: Build Docker image
-        run: docker-compose up --build
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
+      - name: Set up Docker Compose
+        run: docker-compose up -d
+
+      - name: Get docker-compose logs
+        run: docker-compose logs
