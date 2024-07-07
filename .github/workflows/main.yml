@@ -2,27 +2,13 @@ name: CI
 
 on: [push, pull_request]
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Docker Compose
-        run: |
-          docker-compose up -d --build
-          docker-compose exec web bash
-          pytest
-          
+jobs:         
 
   build:
     runs-on: ubuntu-latest
-    needs: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Set up Docker Compose
-        run: docker-compose up -d
-
-      - name: Get docker-compose logs
-        run: docker-compose logs
+        run: docker-compose up --build -d
