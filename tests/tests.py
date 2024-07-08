@@ -1,8 +1,10 @@
 import time
+from unittest.mock import MagicMock, patch
 from django.utils import timezone
 import pytest
 from core.tasks import calculate_rental_cost
 from core.models import Rental, Bicycle
+
 
 @pytest.fixture(scope='session')
 def celery_config():
@@ -19,7 +21,8 @@ def test_rent_bicycle(api_client, test_user, test_bicycle):
     api_client.force_authenticate(user=test_user)
     initial_rental_count = Rental.objects.count()
 
-    response = api_client.post('/api/rentals/rent/', {'bicycle_id': test_bicycle.id})
+    response = api_client.post(
+        '/api/rentals/rent/', {'bicycle_id': test_bicycle.id})
 
     assert response.status_code == 201
     assert Rental.objects.count() == initial_rental_count + 1
@@ -27,7 +30,7 @@ def test_rent_bicycle(api_client, test_user, test_bicycle):
 
 
 @pytest.mark.django_db
-def test_get_rental_history(api_client, test_user, test_bicycle, test_rental_id):
+def test_get_rental_history(api_client, test_user, test_bicycle):
     api_client.force_authenticate(user=test_user)
     initial_rental_count = Rental.objects.count()
     Rental.objects.create(user=test_user, bicycle=test_bicycle)
@@ -39,16 +42,18 @@ def test_get_rental_history(api_client, test_user, test_bicycle, test_rental_id)
 
 
 @pytest.mark.django_db
-def test_rental_calculation(api_client, test_user, test_bicycle):
-    rental = Rental.objects.create(
-        user=test_user,
-        bicycle=test_bicycle,
-        start_time=timezone.now(),
-        end_time=timezone.now() + timezone.timedelta(hours=1),
-    )
+def test_calculate_rental_cost_success():
+    # Mocking the Rental model and its methodsA
+    rental = MagicMock(spec=Rental)
+    rental.start_time = MagicMock()
+    rental.end_time = MagicMock()
+    rental.start_time = timezone.now()
+    rental.end_time = timezone.now() + timezone.timedelta(hours=1)
+    rental.id = 1
 
-    task_result = calculate_rental_cost.delay(rental.id)
+    with patch('core.models.Rental.objects.get', return_value=rental):
+        calculate_rental_cost(rental.id)
 
-    assert task_result is not None
-
+        rental.save.assert_called_once()
+        assert rental.cost == 100
 
