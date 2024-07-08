@@ -3,7 +3,6 @@ name: CI
 on: [push, pull_request]
 
 jobs:         
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -12,5 +11,6 @@ jobs:
 
       - name: Set up Docker Compose
         run: docker-compose up --build -d
+
       - name: Run Tests
-        run: docker-compose exec web bash pytest -v
+        run: docker-compose exec -T web pytest -v
